@@ -1,0 +1,20 @@
+{
+  "name": "prismic-field-migrator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "migrate": "npx tsx src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prismicio/client": "^7.16.0",
+    "@prismicio/migrate": "^0.0.2",
+    "@types/node": "^22.13.1",
+    "dotenv": "^16.4.7",
+    "node-fetch": "^3.3.2",
+    "ora": "^8.2.0"
+  }
+}
