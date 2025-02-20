@@ -41,6 +41,7 @@ export class DocumentProcessor {
       },
     };
 
+    // Handle special case for use_cases document type which have an old uid field that needs to be removed
     return doc.type === "use_cases" ? { ...updatedDoc, uid: null } : updatedDoc;
   }
 
