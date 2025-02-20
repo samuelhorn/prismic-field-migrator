@@ -7,7 +7,7 @@ export const CONFIG = {
     enabled: false,
     documentType: "page",
   },
-  repository: "prismic-main",
+  repository: process.env.REPOSITORY,
   migrationToken: process.env.MIGRATION_TOKEN,
   apiKey: process.env.API_KEY,
   apiEndpoint: process.env.API_ENDPOINT,
