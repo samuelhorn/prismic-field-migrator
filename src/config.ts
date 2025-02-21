@@ -24,24 +24,20 @@ export const CONFIG: Config = {
       "illustratedBottomFullWidth",
     ],
     fieldMapping: {
-      source: [
-        {
-          location: "items[*].link",
-          fields: {
-            link: ".",
-            label: "^.link_label",
-            style: "^.link_style",
+      from: {
+        container: "items",
+        fields: ["link", "link_label", "link_style"],
+      },
+      to: {
+        container: "primary.link",
+        transformations: {
+          spread: ["link"],
+          rename: {
+            link_style: "variant",
+            link_label: "text",
           },
-          removeAfterMigration: true,
         },
-      ],
-      target: {
-        location: "primary.link[*]",
-        fields: {
-          link: ".",
-          text: "text",
-          variant: "variant",
-        },
+        preserveSource: false,
       },
     },
   },

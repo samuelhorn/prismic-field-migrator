@@ -1,34 +1,52 @@
+import { SharedSlice } from "@prismicio/client";
 import { CONFIG } from "../../config";
 
 export class SliceFilter {
-  static isEligibleForMigration(slice: any) {
+  static isEligibleForMigration(slice: SharedSlice): boolean {
+    // Check slice type and variation
     const correctVariation =
       slice.slice_type === CONFIG.sliceToMigrate.type &&
       CONFIG.sliceToMigrate.variations.includes(slice.variation);
 
-    // Check if items exist and contain required source fields
-    const hasValidItems = slice.items?.some((item: any) => {
-      const sourceConfig = CONFIG.sliceToMigrate.fieldMapping.source[0];
-      const hasLink = item.link; // Base requirement
+    // Check source fields exist
+    const hasValidFields = this.validateSourceFields(slice);
 
-      // Check if all required fields from mapping exist
-      const hasRequiredFields = Object.entries(sourceConfig.fields).every(
-        ([_, path]) => {
-          if (path === ".") return hasLink;
-          if (path.startsWith("^.")) {
-            const fieldName = path.slice(2);
-            return item.hasOwnProperty(fieldName);
-          }
-          return item.hasOwnProperty(path);
-        }
+    // Check target container exists
+    const hasTargetContainer = this.validateTargetContainer(slice);
+
+    return correctVariation && hasValidFields && hasTargetContainer;
+  }
+
+  private static validateSourceFields(slice: SharedSlice): boolean {
+    const { container, fields } = CONFIG.sliceToMigrate.fieldMapping.from;
+    const sourceContainer = container ? slice[container] : slice;
+
+    // If source is array, check at least one item has all required fields
+    if (Array.isArray(sourceContainer)) {
+      return sourceContainer.some((item) =>
+        fields.every((fieldName) => item.hasOwnProperty(fieldName))
       );
+    }
 
-      return hasLink && hasRequiredFields;
-    });
+    // If source is object, check all required fields exist
+    return fields.every((fieldName) =>
+      sourceContainer.hasOwnProperty(fieldName)
+    );
+  }
 
-    // Check if primary target exists
-    const hasPrimaryTarget = slice.primary?.hasOwnProperty("link");
+  private static validateTargetContainer(slice: SharedSlice): boolean {
+    const targetPath =
+      CONFIG.sliceToMigrate.fieldMapping.to.container.split(".");
+    let target = slice;
 
-    return correctVariation && hasValidItems && hasPrimaryTarget;
+    // Navigate through path except last segment
+    for (let i = 0; i < targetPath.length - 1; i++) {
+      if (!target[targetPath[i]]) {
+        return false;
+      }
+      target = target[targetPath[i]];
+    }
+
+    return true;
   }
 }

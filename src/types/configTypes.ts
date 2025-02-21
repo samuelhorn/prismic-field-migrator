@@ -6,34 +6,27 @@ export interface PerTypeModeConfig {
   documentTypes: string[];
 }
 
-/** Field mapping configuration */
+/** Source field mapping configuration */
 export interface FieldMapping {
-  /** Location pattern for data traversal
-   * Supports the following syntax:
-   * - path.to.field - Nested object access
-   * - items[*] - Array iteration (wildcard)
-   * - items[0] - Specific array index
-   * Example: "items[*].link" traverses all items array elements' link property
-   */
-  location: string;
-  /** Field mapping definitions using path patterns
-   * Supports the following syntax:
-   * - "." - References current node value
-   * - "^" - Moves up one level (parent)
-   * - "^.property" - Access parent's property
-   * - "^^.property" - Move up two levels and access property
-   * Example: {
-   *   link: ".",           // Current node value
-   *   label: "^.label",    // Parent node's label property
-   *   style: "^^.style"    // Grandparent node's style property
-   * }
-   */
-  fields: Record<string, string>;
+  /** Optional container field that holds the source fields (e.g. "items") */
+  container?: string | null;
+  /** Array of field names to migrate from the source */
+  fields: string[];
 }
 
-interface SourceFieldMapping extends FieldMapping {
-  /** Whether to remove the source fields content after successful migration */
-  removeAfterMigration?: boolean;
+/** Target field mapping with transformation configuration */
+export interface TargetFieldMapping {
+  /** Dot notation path to the target container (e.g. "primary.link") */
+  container: string;
+  /** Optional field transformation rules including spread and rename options */
+  transformations?: {
+    /** Optional array of fields whose values should be spread into the target */
+    spread?: string[];
+    /** Optional map of source field names to their new names in the target */
+    rename?: Record<string, string>;
+  };
+  /** Whether to keep the original source fields after migration */
+  preserveSource: boolean;
 }
 
 /** Slice migration configuration */
@@ -42,12 +35,10 @@ export interface SliceToMigrateConfig {
   type: string;
   /** Supported variations of the slice */
   variations: string[];
-  /** Field mapping configuration */
+  /** Field mapping configuration containing source and target mappings */
   fieldMapping: {
-    /** Source field mappings */
-    source: SourceFieldMapping[];
-    /** Target field mapping */
-    target: FieldMapping;
+    from: FieldMapping;
+    to: TargetFieldMapping;
   };
 }
 
@@ -63,6 +54,6 @@ export interface Config {
   apiKey: string | undefined;
   /** Slice migration configuration */
   sliceToMigrate: SliceToMigrateConfig;
-  /** Sometimes a document model can contain multiple slice zones, if that's the case for any of your documents, add them to this array */
+  /** Array of slice zone names that may exist in document models */
   possibleSliceZones: string[];
 }

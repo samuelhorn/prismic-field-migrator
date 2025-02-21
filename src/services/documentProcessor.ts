@@ -1,7 +1,8 @@
+import type { Migration, PrismicDocument } from "@prismicio/client";
 import { SliceProcessor } from "./sliceProcessor";
 
 export class DocumentProcessor {
-  static prepareDocumentMigration(migration: any, doc: any) {
+  static prepareDocumentMigration(migration: Migration, doc: PrismicDocument) {
     const updatedDoc = {
       ...doc,
       data: {
