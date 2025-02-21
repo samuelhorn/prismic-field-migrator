@@ -1,4 +1,4 @@
-# Field Updater
+# Prismic Field Migrator
 
 A script for moving link, link_label and link_style fields from the repeatable zone of a slice to a new repeatable link field.
 
@@ -14,7 +14,6 @@ A script for moving link, link_label and link_style fields from the repeatable z
 MIGRATION_TOKEN=
 REPOSITORY=
 API_KEY=
-API_ENDPOINT=https://migration.prismic.io/documents/
 ```
 
 ## Do a migration

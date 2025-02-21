@@ -10,7 +10,6 @@ export const CONFIG = {
   repository: process.env.REPOSITORY,
   migrationToken: process.env.MIGRATION_TOKEN,
   apiKey: process.env.API_KEY,
-  apiEndpoint: process.env.API_ENDPOINT,
   sliceToMigrate: {
     type: "main_call_to_action",
     variations: [
