@@ -1,34 +1,18 @@
+// src/index.ts
 import ora from "ora";
 import * as prismic from "@prismicio/client";
 import { CONFIG } from "./config";
 import { DocumentFilter } from "./services/filters/documentFilter";
 import { DocumentProcessor } from "./services/documentProcessor";
+import { DocumentMigrationTracker } from "./services/documentMigrationTracker";
 
-const writeClient = prismic.createWriteClient(CONFIG.repository, {
+const writeClient = prismic.createWriteClient(CONFIG.repository!, {
   writeToken: CONFIG.migrationToken!,
 });
 
-function logMigrationSummary(
-  successfulMigrations: number,
-  failedMigrations: number,
-  totalDocuments: number
-) {
-  const summarySpinner = ora().start();
-  if (failedMigrations === 0) {
-    summarySpinner.succeed(
-      `${successfulMigrations} of ${totalDocuments} documents migrated successfully`
-    );
-  } else {
-    summarySpinner.fail(
-      `${successfulMigrations} documents migrated successfully and ${failedMigrations} failed`
-    );
-  }
-}
-
 async function migrateDocuments() {
   const fetchSpinner = ora("Fetching documents...").start();
-  let successfulMigrations = 0;
-  let failedMigrations = 0;
+  const tracker = new DocumentMigrationTracker();
 
   try {
     const documents = await writeClient.dangerouslyGetAll();
@@ -38,6 +22,10 @@ async function migrateDocuments() {
     const documentsToMigrate =
       documentFilter.filterDocumentsForMigration(documents);
 
+    // Create migration instance
+    const migration = prismic.createMigration();
+
+    // Prepare all document migrations
     for (const doc of documentsToMigrate) {
       if (
         CONFIG.perTypeMode.enabled &&
@@ -45,19 +33,30 @@ async function migrateDocuments() {
       ) {
         continue;
       }
-
-      const success = await DocumentProcessor.processDocument(doc);
-      success ? successfulMigrations++ : failedMigrations++;
-      await new Promise((resolve) => setTimeout(resolve, 1100));
+      DocumentProcessor.prepareDocumentMigration(migration, doc);
     }
 
-    logMigrationSummary(
-      successfulMigrations,
-      failedMigrations,
-      documentsToMigrate.length
-    );
+    // Execute migration
+    await writeClient.migrate(migration, {
+      reporter: (event) => {
+        if (event.type === "start") {
+          tracker.start(event.data.pending.documents);
+        } else if (event.type === "documents:updating") {
+          tracker.onDocumentUpdating(
+            event.data.current,
+            event.data.total,
+            event.data.document.document.id!,
+            event.data.document.document.type!,
+            event.data.document.document.uid || undefined
+          );
+        } else if (event.type === "end") {
+          tracker.complete(event.data.migrated.documents);
+        }
+      },
+    });
   } catch (error) {
-    console.error("Migration failed:", error);
+    tracker.error(error.message);
+    console.error(error);
   }
 }
 
