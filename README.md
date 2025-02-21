@@ -1,6 +1,6 @@
 # Prismic Field Migrator
 
-A script for moving link, link_label and link_style fields from the repeatable zone of a slice to a new repeatable link field.
+A script for moving fields to other fields within a Prismic repository.
 
 ## To run
 

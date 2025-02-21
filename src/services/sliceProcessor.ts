@@ -1,3 +1,4 @@
+// src/services/sliceProcessor.ts
 import { CONFIG } from "../config";
 import * as prismic from "@prismicio/client";
 
@@ -11,15 +12,47 @@ export class SliceProcessor {
       return slice;
     }
 
-    const existingPrimaryLinks = this.getExistingPrimaryLinks(slice);
-    const newLinks = this.transformItemLinks(slice.items);
+    const sourceData = this.getSourceData(slice);
+    const transformedData = this.transformData(sourceData);
+    return this.applyChanges(slice, transformedData);
+  }
+
+  private static getSourceData(slice: any) {
+    return slice.items
+      .filter((item) => item.link)
+      .map((item) => ({
+        link: item.link,
+        parent: item,
+      }));
+  }
+
+  private static transformData(sourceData: any[]) {
+    const { fields: sourceFields } =
+      CONFIG.sliceToMigrate.fieldMapping.source[0];
+
+    return sourceData.map(({ link, parent }) => {
+      const { key, ...restLink } = link;
+      return {
+        ...restLink,
+        text: parent[sourceFields.label.slice(2)],
+        variant: parent[sourceFields.style.slice(2)],
+      };
+    });
+  }
+
+  private static applyChanges(slice: any, transformedData: any[]) {
+    const existingLinks = Array.isArray(slice.primary.link)
+      ? prismic.isFilled.link(slice.primary.link)
+        ? slice.primary.link
+        : []
+      : [];
 
     return {
       ...slice,
       items: slice.items.filter((item) => !item.link),
       primary: {
         ...slice.primary,
-        link: [...existingPrimaryLinks, ...newLinks],
+        link: [...existingLinks, ...transformedData],
       },
     };
   }
@@ -30,33 +63,5 @@ export class SliceProcessor {
       CONFIG.sliceToMigrate.variations.includes(slice.variation) &&
       slice.items?.some((item) => item.link)
     );
-  }
-
-  private static getExistingPrimaryLinks(slice: any) {
-    return Array.isArray(slice.primary.link)
-      ? prismic.isFilled.link(slice.primary.link)
-        ? slice.primary.link
-        : []
-      : [];
-  }
-
-  private static transformItemLinks(items: any[]) {
-    return (
-      items
-        ?.filter((item) => item.link)
-        .map(({ link: { key, ...restLink }, link_label, link_style }) => ({
-          ...restLink,
-          text: link_label,
-          variant: this.getLinkVariant(link_style),
-        })) || []
-    );
-  }
-
-  private static getLinkVariant(style: string) {
-    return style === "primary"
-      ? "primary"
-      : style === "secondary"
-      ? "secondary"
-      : "tertiary";
   }
 }

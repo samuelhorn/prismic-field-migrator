@@ -4,7 +4,7 @@ loadEnvConfig();
 
 export const CONFIG = {
   perTypeMode: {
-    enabled: false,
+    enabled: true,
     documentType: "page",
   },
   repository: process.env.REPOSITORY,
@@ -22,7 +22,27 @@ export const CONFIG = {
       "illustratedBottom",
       "illustratedBottomFullWidth",
     ],
-    validItemFields: ["link", "link_label", "link_style"],
+    fieldMapping: {
+      source: [
+        {
+          location: "items[*].link",
+          fields: {
+            link: ".",
+            label: "^.link_label",
+            style: "^.link_style",
+          },
+          removeAfterMigration: true,
+        },
+      ],
+      target: {
+        location: "primary.link[*]",
+        fields: {
+          link: ".",
+          text: "text",
+          variant: "variant",
+        },
+      },
+    },
   },
   possibleSliceZones: ["slices", "slices1", "slices2", "slices3"],
 };
