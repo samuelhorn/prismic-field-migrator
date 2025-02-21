@@ -3,6 +3,7 @@ import ora, { Ora } from "ora";
 export class DocumentMigrationTracker {
   private mainSpinner: Ora;
   private updateSpinner: Ora;
+  private fetchSpinner: Ora;
   private lastDocumentId: string | null = null;
   private lastDocumentType: string | null = null;
   private lastDocumentUid: string | undefined;
@@ -10,6 +11,15 @@ export class DocumentMigrationTracker {
   constructor() {
     this.mainSpinner = ora();
     this.updateSpinner = ora();
+    this.fetchSpinner = ora();
+  }
+
+  startFetching() {
+    this.fetchSpinner.start("Fetching documents...");
+  }
+
+  completeFetching() {
+    this.fetchSpinner.succeed("Documents fetched successfully.");
   }
 
   start(totalDocuments: number) {

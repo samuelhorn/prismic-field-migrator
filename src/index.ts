@@ -11,12 +11,12 @@ const writeClient = prismic.createWriteClient(CONFIG.repository!, {
 });
 
 async function migrateDocuments() {
-  const fetchSpinner = ora("Fetching documents...").start();
   const tracker = new DocumentMigrationTracker();
 
   try {
+    tracker.startFetching();
     const documents = await writeClient.dangerouslyGetAll();
-    fetchSpinner.succeed("Documents fetched successfully.");
+    tracker.completeFetching();
 
     const documentFilter = new DocumentFilter();
     const documentsToMigrate =
