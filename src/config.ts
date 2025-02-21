@@ -1,11 +1,12 @@
 import { loadEnvConfig } from "./utils/envLoader";
+import { Config } from "./types/configTypes";
 
 loadEnvConfig();
 
-export const CONFIG = {
+export const CONFIG: Config = {
   perTypeMode: {
     enabled: true,
-    documentType: "page",
+    documentTypes: ["page"],
   },
   repository: process.env.REPOSITORY,
   migrationToken: process.env.MIGRATION_TOKEN,

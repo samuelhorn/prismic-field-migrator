@@ -1,5 +1,4 @@
 // src/index.ts
-import ora from "ora";
 import * as prismic from "@prismicio/client";
 import { CONFIG } from "./config";
 import { DocumentFilter } from "./services/filters/documentFilter";
@@ -29,7 +28,7 @@ async function migrateDocuments() {
     for (const doc of documentsToMigrate) {
       if (
         CONFIG.perTypeMode.enabled &&
-        doc.type !== CONFIG.perTypeMode.documentType
+        !CONFIG.perTypeMode.documentTypes.includes(doc.type)
       ) {
         continue;
       }
